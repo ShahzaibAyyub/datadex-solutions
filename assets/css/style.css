@@ -98,6 +98,7 @@ h3 {
   line-height: 1.1;
   margin: 0 0 0.5em;
   letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 h1 {
@@ -118,6 +119,7 @@ h3 {
 p {
   margin: 0 0 1em;
   max-width: 68ch;
+  text-wrap: pretty;
 }
 
 ul,
@@ -582,15 +584,14 @@ ol {
 /* ---------- Work ---------- */
 
 .work-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(20px, 3vw, 36px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .work-item > a,
 .work-static {
   display: block;
-  height: 100%;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -645,12 +646,6 @@ ol {
   margin: 14px 0 0;
 }
 
-@media (max-width: 760px) {
-  .work-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* ---------- Stack ---------- */
 
 .stack-grid {
@@ -690,7 +685,7 @@ ol {
   counter-reset: step;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 24px;
+  gap: 32px;
 }
 
 .process li {
@@ -928,14 +923,6 @@ ol {
   background: color-mix(in srgb, var(--ground) 94%, transparent);
 }
 
-.header-inner {
-  transition: min-height 300ms var(--ease-out);
-}
-
-.site-header.is-scrolled .header-inner {
-  min-height: 58px;
-}
-
 .scroll-progress {
   position: absolute;
   left: 0;
@@ -974,18 +961,32 @@ ol {
   transition: border-color 200ms ease, background-color 200ms ease;
 }
 
+/* The pulse lives on a pseudo-element and only animates transform and
+   opacity, so the sticky header is never repainted for it */
 .nav-cta {
+  position: relative;
+  isolation: isolate;
+}
+
+.nav-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--teal);
+  opacity: 0;
+  z-index: -1;
+  pointer-events: none;
   animation: cta-pulse 2.4s ease-out infinite;
 }
 
-.nav-cta:hover {
+.nav-cta:hover::before {
   animation: none;
 }
 
 @keyframes cta-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(15, 163, 160, 0.55); }
-  70% { box-shadow: 0 0 0 12px rgba(15, 163, 160, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(15, 163, 160, 0); }
+  0% { transform: scale(1); opacity: 0.6; }
+  70%, 100% { transform: scale(1.25, 1.55); opacity: 0; }
 }
 
 /* Full-screen mobile menu */
@@ -998,8 +999,8 @@ ol {
     top: 100%;
     left: 0;
     right: 0;
-    height: 100vh;
-    height: 100dvh;
+    height: calc(100vh - 100%);
+    height: calc(100dvh - 100%);
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -1070,28 +1071,30 @@ ol {
   z-index: 0;
 }
 
+/* The glow is a radial gradient that already fades to nothing, so it
+   needs no blur filter; the drift is transform-only. */
 .hero-bg span {
   position: absolute;
   border-radius: 50%;
-  filter: blur(40px);
   opacity: 0.55;
+  will-change: transform;
 }
 
 .hero-bg span:first-child {
-  width: 46vw;
-  height: 46vw;
-  right: -12vw;
-  top: -18vw;
-  background: radial-gradient(closest-side, rgba(15, 163, 160, 0.35), rgba(15, 163, 160, 0));
+  width: 52vw;
+  height: 52vw;
+  right: -15vw;
+  top: -21vw;
+  background: radial-gradient(closest-side, rgba(15, 163, 160, 0.34), rgba(15, 163, 160, 0.12) 45%, rgba(15, 163, 160, 0) 100%);
   animation: drift-a 18s ease-in-out infinite;
 }
 
 .hero-bg span:last-child {
-  width: 36vw;
-  height: 36vw;
-  left: -14vw;
-  bottom: -20vw;
-  background: radial-gradient(closest-side, rgba(16, 35, 58, 0.22), rgba(16, 35, 58, 0));
+  width: 42vw;
+  height: 42vw;
+  left: -17vw;
+  bottom: -23vw;
+  background: radial-gradient(closest-side, rgba(16, 35, 58, 0.2), rgba(16, 35, 58, 0.07) 45%, rgba(16, 35, 58, 0) 100%);
   animation: drift-b 22s ease-in-out infinite;
 }
 
@@ -1119,8 +1122,8 @@ ol {
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(15, 163, 160, 0.55); }
-  70% { box-shadow: 0 0 0 10px rgba(15, 163, 160, 0); }
+  0% { transform: scale(1); opacity: 0.55; }
+  70%, 100% { transform: scale(1.28); opacity: 0; }
 }
 
 @keyframes rise {
@@ -1154,11 +1157,11 @@ ol {
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: shimmer 4.5s linear infinite;
+  animation: shimmer 4.5s linear 4;
 }
 
 .js .hero-copy h1 span {
-  animation: unmask 900ms var(--ease-out) both, shimmer 4.5s linear infinite;
+  animation: unmask 900ms var(--ease-out) both, shimmer 4.5s linear 4;
 }
 
 .js .hero-copy h1 span:nth-child(1) { animation-delay: 140ms; }
@@ -1215,6 +1218,7 @@ ol {
   margin: 0;
   padding-inline: clamp(24px, 3vw, 48px);
   animation: marquee 44s linear infinite;
+  will-change: transform;
 }
 
 .proof.is-marquee:hover .proof-grid {
@@ -1432,12 +1436,6 @@ ol {
 
 /* ---------- Work: tilt, zoom, live-site badge ---------- */
 
-.work-item > a,
-.work-static {
-  transition: transform 600ms var(--ease-out), box-shadow 600ms var(--ease-out), border-color 300ms ease;
-  transform-style: preserve-3d;
-}
-
 .work-item > a:hover,
 .work-item > a:focus-visible {
   box-shadow: 0 40px 70px -40px rgba(16, 35, 58, 0.55);
@@ -1524,19 +1522,15 @@ ol {
 }
 
 .stack-grid li {
-  transition: color 200ms ease, padding-left 250ms var(--ease-out);
+  transition: color 200ms ease, transform 250ms var(--ease-out);
 }
 
 .stack-grid li:hover {
   color: var(--teal-deep);
-  padding-left: 6px;
+  transform: translateX(6px);
 }
 
 /* ---------- Process: chevrons flow between the cards ---------- */
-
-.process {
-  gap: 32px;
-}
 
 .process li {
   transition: border-color 300ms ease, transform 500ms var(--ease-out), box-shadow 500ms var(--ease-out);
@@ -1731,13 +1725,12 @@ ol {
   background: var(--ink);
 }
 
-/* ---------- Work: cards that stack as you scroll ---------- */
-
-.work-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
+/* ---------- Work: cards that stack as you scroll ----------
+   The script sets --s (scale) and --b (dim) every frame while a card is
+   being covered by the next one. Those two properties are deliberately not
+   transitioned: a transition on a value that changes each frame only lags
+   behind the scroll. Dimming is an overlay's opacity rather than a filter,
+   so the card's image is never re-rasterised. */
 
 .work-item {
   position: sticky;
@@ -1746,6 +1739,7 @@ ol {
 
 .work-item > a,
 .work-static {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: clamp(20px, 3vw, 44px);
@@ -1753,13 +1747,29 @@ ol {
   padding: clamp(20px, 3vw, 32px);
   box-shadow: 0 -14px 40px -30px rgba(16, 35, 58, 0.4);
   transform-origin: top center;
-  transition: transform 200ms linear, filter 200ms linear, border-color 300ms ease, box-shadow 300ms ease;
+  transition: border-color 300ms ease, box-shadow 300ms ease;
+}
+
+.work-item > a::after,
+.work-static::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--ink);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .work-item.is-covered > a,
 .work-item.is-covered .work-static {
   transform: scale(var(--s, 1));
-  filter: brightness(var(--b, 1));
+  will-change: transform;
+}
+
+.work-item.is-covered > a::after,
+.work-item.is-covered .work-static::after {
+  opacity: calc((1 - var(--b, 1)) * 1.5);
 }
 
 .work-item figure {
@@ -1843,7 +1853,7 @@ ol {
 .stack-terminal-body {
   margin: 0;
   padding: 20px 22px 24px;
-  min-height: 280px;
+  min-height: var(--terminal-h, 280px);
   font-family: "IBM Plex Mono", Menlo, Consolas, monospace;
   font-size: 13.5px;
   line-height: 1.8;
@@ -2157,8 +2167,17 @@ ol {
   display: grid;
   place-items: center;
   box-shadow: 0 24px 48px -24px rgba(16, 35, 58, 0.45);
-  animation: pulse 2.6s ease-out infinite;
   z-index: 2;
+}
+
+.team-orbit-core::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  animation: pulse 2.6s ease-out infinite;
+  pointer-events: none;
 }
 
 .team-orbit-core img {
@@ -2371,7 +2390,11 @@ ol {
   .work-item.is-covered > a,
   .work-item.is-covered .work-static {
     transform: none;
-    filter: none;
+  }
+
+  .work-item.is-covered > a::after,
+  .work-item.is-covered .work-static::after {
+    opacity: 0;
   }
 
   .process-ring .ring-fg {
